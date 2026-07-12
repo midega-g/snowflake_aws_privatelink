@@ -251,9 +251,60 @@ terraform apply
 
 ---
 
+## Git Commits & Push
+
+### aws-org-infra
+
+```bash
+cd /home/midega-g/Desktop/Learning/aws-org-infra
+
+git add \
+  01_org_setup/03_security/01_management_iam/main.tf \
+  01_org_setup/03_security/01_management_iam/snowflake_privatelink_role.tf \
+  01_org_setup/03_security/03_github_oidc/main.tf
+
+git commit -m "feat: add snowflake-privatelink IAM role + sandbox assume-role access
+
+- Create OrgSnowflakePrivateLinkAdmin role (scoped for PrivateLink infra)
+- Create OrgSnowflakePrivateLinkOps policy (STS, EC2, Route53, S3 state)
+- Add sandbox account to AssumeRoleInMemberAccounts (OrgTerraformOps)
+- Add sandbox account to AssumeOrgAccessRole (OrgAssumeBackboneAccounts)
+- Add iam:TagPolicy/TagRole/UntagPolicy/UntagRole to IAMPolicyManagement
+- Add local.sandbox_id to locals block
+- Add data.terraform_remote_state.sandbox for sandbox account ID
+- Update OIDC trust to include snowflake_aws_privatelink repo"
+
+git push
+# To https://github.com/midega-g/aws-org-infra.git
+#    57e1d2d..1557497  main -> main
+```
+
+### snowflake_aws_privatelink
+
+```bash
+cd /home/midega-g/Desktop/Learning/snowflake_aws_privatelink
+
+git add -A
+
+git commit -m "feat: initial project structure and specs
+
+- Project scaffolding: terraform workspaces, scripts, docs, app
+- Spec files: requirements, design, tasks, checklist
+- Helper scripts: authorize, verify, revoke, test-connectivity
+- Phase 0 implementation log
+- README with architecture diagram and quick start"
+
+git branch -M main
+git push -u origin main
+# To https://github.com/midega-g/snowflake_aws_privatelink.git
+#  * [new branch]      main -> main
+#  branch 'main' set up to track 'origin/main'.
+```
+
+---
+
 ## Next Steps
 
 - **Phase 1:** Create VPC + networking in `terraform/01_networking`
 - Update README with correct profile instructions (use `org_mgmt_epf`, not a separate profile)
 - Confirm Switch Role to sandbox works in console
-- Initial git commit in `snowflake_aws_privatelink` repo
