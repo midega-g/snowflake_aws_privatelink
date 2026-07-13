@@ -303,8 +303,107 @@ git push -u origin main
 
 ---
 
+## Post-Phase 0: Pre-commit and Workspace READMEs
+
+### Date: 2026-07-13
+
+### terraform-docs Setup
+
+The `terraform_docs` pre-commit hook requires `terraform-docs` installed locally.
+
+**Install terraform-docs:**
+
+```bash
+# Option 1: Go install (if you have Go)
+go install github.com/terraform-docs/terraform-docs@latest
+
+# Option 2: Pre-built binary (pick the latest release from
+# https://github.com/terraform-docs/terraform-docs/releases)
+curl -sSLo terraform-docs.tar.gz https://github.com/terraform-docs/terraform-docs/releases/download/<VERSION>/terraform-docs-<VERSION>-linux-amd64.tar.gz
+tar -xzf terraform-docs.tar.gz
+sudo mv terraform-docs /usr/local/bin/
+rm terraform-docs.tar.gz
+```
+
+### Pre-commit Config Update
+
+Updated `.pre-commit-config.yaml` to configure the `terraform_docs` hook:
+
+```yaml
+- id: terraform_docs
+  files: ^terraform/
+  args:
+    - '--args=--sort-by=required'
+    - '--hook-config=--path-to-file=README.md'
+    - '--hook-config=--add-to-existing-file=true'
+    - '--hook-config=--create-file-if-not-exist=true'
+```
+
+This ensures:
+- Hook only scans `terraform/` subdirectories
+- Injects docs into `README.md` (not a separate file)
+- Adds to existing README content (doesn't overwrite)
+- Creates README if one doesn't exist
+
+### Per-Workspace READMEs Created
+
+Each terraform workspace now has a `README.md` with:
+- Description of what the workspace provisions
+- Prerequisites
+- Apply/usage instructions
+- `<!-- BEGINNING OF PRE-COMMIT-TERRAFORM DOCS HOOK -->` injection tags
+
+| File | Content |
+|------|---------|
+| `terraform/01_networking/README.md` | VPC, subnets, gateways, route tables |
+| `terraform/02_privatelink/README.md` | VPCE, S3 gateway, security groups, DNS |
+| `terraform/03_ec2_test/README.md` | EC2 instance, usage + cleanup instructions |
+| `terraform/04_network_policy/README.md` | Network policy + lockout warning + rollback |
+
+### Removed `.gitkeep` files
+
+All `.gitkeep` files in terraform subdirectories removed — READMEs now track the directories.
+
+### Pre-commit Test Run
+
+```bash
+pre-commit run --all-files
+```
+
+| Hook | Result |
+|------|--------|
+| terraform_fmt | Passed |
+| terraform_validate | Passed |
+| terraform_docs | Failed (terraform-docs binary not installed) |
+| trailing-whitespace | Passed |
+| end-of-file-fixer | Passed |
+| check-yaml | Passed |
+| check-json | Skipped (no files) |
+| check-merge-conflicts | Passed |
+| detect-private-key | Passed |
+
+**Action needed:** Install `terraform-docs` per instructions above, then re-run.
+
+### Git Commit
+
+```bash
+git add .pre-commit-config.yaml terraform/*/README.md terraform/*/.gitkeep
+git commit -m "docs: add per-workspace READMEs with terraform-docs hooks
+
+- Add README.md with injection tags to each terraform workspace
+- Update pre-commit terraform_docs hook with path-to-file and
+  add-to-existing-file config
+- Remove .gitkeep files (READMEs now track directories)"
+
+git push
+# e1715b9..e40eb22  main -> main
+```
+
+---
+
 ## Next Steps
 
+- Install `terraform-docs` locally
 - **Phase 1:** Create VPC + networking in `terraform/01_networking`
 - Update README with correct profile instructions (use `org_mgmt_epf`, not a separate profile)
 - Confirm Switch Role to sandbox works in console
