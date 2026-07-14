@@ -201,6 +201,68 @@ vpc_id                 = "vpc-0d9557474d203dd15"
 
 ---
 
+## Cost Estimate — Phase 1
+
+Pricing data retrieved from AWS Price List API (us-east-1, effective 2026-07-01).
+
+### Phase 1 Resources (monthly)
+
+| Resource | Unit Price | Quantity | Monthly Cost |
+|----------|-----------|----------|-------------|
+| NAT Gateway | $0.045/hour | 730 hrs (24/7) | $32.85 |
+| NAT Gateway data processing | $0.045/GB | ~1 GB (minimal sandbox traffic) | $0.05 |
+| Elastic IP (NAT) | $0.005/hour (in-use) | 730 hrs | $3.65 |
+| VPC | Free | 1 | $0.00 |
+| Subnets | Free | 6 | $0.00 |
+| Internet Gateway | Free | 1 | $0.00 |
+| Route Tables | Free | 2 | $0.00 |
+| **Phase 1 Total** | | | **~$36.55/month** |
+
+### Cumulative Cost
+
+| Phase | Monthly Cost | Cumulative |
+|-------|-------------|-----------|
+| Phase 0 | $0.01 | $0.01 |
+| Phase 1 | $36.55 | **$36.56/month** |
+
+### Notes
+
+- The NAT Gateway is the primary cost driver (~90% of Phase 1 spend)
+- The EIP is charged at $0.005/hr even when attached (AWS public IPv4 pricing since Feb 2024)
+- If the sandbox is unused, consider destroying the NAT Gateway to save ~$36/month:
+
+  ```bash
+  # Destroy (stops billing immediately)
+  terraform destroy -target=aws_nat_gateway.main -target=aws_eip.nat
+
+  # Recreate when needed
+  terraform apply -target=aws_eip.nat -target=aws_nat_gateway.main
+  ```
+
+  **Effect of destroy:** Private subnets lose outbound internet access (0.0.0.0/0 route
+  becomes a black hole). VPC endpoints (Phase 2) are unaffected — PrivateLink traffic
+  does not route through NAT. The EC2 test instance (Phase 3) in a public subnet is also
+  unaffected (it uses the IGW directly).
+
+  **Effect of recreate:** NAT gets a new public IP. The EIP allocation ID changes, but
+  Terraform handles the route table update automatically. No impact on PrivateLink or
+  existing VPC endpoint connectivity.
+
+- VPC, subnets, IGW, and route tables are free — only the NAT + EIP cost money
+
+### Upcoming Phase 2 Cost Preview
+
+| Resource | Unit Price | Quantity | Estimated Monthly Cost |
+|----------|-----------|----------|----------------------|
+| VPC Interface Endpoint (Snowflake) | $0.01/hour/AZ | 3 AZs × 730 hrs | $21.90 |
+| VPC Endpoint data processing | $0.01/GB | ~5 GB (light usage) | $0.05 |
+| S3 Gateway Endpoint | Free | 1 | $0.00 |
+| Route53 Private Hosted Zone | $0.50/month | 1 zone | $0.50 |
+| Route53 queries | $0.40/million | ~1,000 queries | $0.00 |
+| **Phase 2 estimated addition** | | | **~$22.45/month** |
+
+---
+
 ## Lessons Learned
 
 1. **Always check SCPs before deploying to a new region.** The `DenyNonAllowedRegions`

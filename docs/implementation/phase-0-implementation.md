@@ -218,6 +218,20 @@ terraform apply
 
 ---
 
+## Cost Estimate — Phase 0
+
+Phase 0 creates no billable AWS resources. All work is IAM configuration (free)
+and S3 state storage (negligible — pennies per month for state files).
+
+| Resource | Monthly Cost |
+|----------|-------------|
+| IAM Role + Policy | $0.00 (free) |
+| S3 state file storage | ~$0.01 (negligible) |
+| OIDC trust policy | $0.00 (free) |
+| **Phase 0 Total** | **~$0.01/month** |
+
+---
+
 ## Lessons Learned
 
 1. **Always check resource naming constraints** before creating new IAM resources.
