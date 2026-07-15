@@ -16,6 +16,26 @@ gh repo create snowflake_aws_privatelink --private --clone
 
 **Result:** `https://github.com/midega-g/snowflake_aws_privatelink` created successfully.
 
+### Repository Metadata
+
+```bash
+gh repo edit \
+  --description "Private connectivity between an AWS VPC and Snowflake using AWS PrivateLink (us-west-2). All traffic stays on the AWS backbone." \
+  --add-topic aws \
+  --add-topic snowflake \
+  --add-topic privatelink \
+  --add-topic terraform \
+  --add-topic vpc \
+  --add-topic infrastructure-as-code \
+  --add-topic aws-privatelink
+```
+
+| Field | Value |
+|-------|-------|
+| Description | Private connectivity between an AWS VPC and Snowflake using AWS PrivateLink (us-west-2). All traffic stays on the AWS backbone. |
+| Topics | `aws`, `aws-privatelink`, `infrastructure-as-code`, `privatelink`, `snowflake`, `terraform`, `vpc` |
+| Visibility | Private |
+
 ### Directory Structure
 
 ```bash

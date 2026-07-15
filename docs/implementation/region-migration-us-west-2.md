@@ -300,6 +300,6 @@ route tables created successfully in us-west-2.
 
 ## Pending
 
-- [ ] Commit and push `aws-org-infra` SCP changes
-- [ ] Commit and push `snowflake_aws_privatelink` region migration
+- [x] Commit and push `aws-org-infra` SCP changes
+- [x] Commit and push `snowflake_aws_privatelink` region migration
 - [ ] **Phase 2:** PrivateLink (VPC endpoint, security groups, Route53 DNS) — now targeting us-west-2
