@@ -3,7 +3,7 @@
 ## 1. Project Goal
 
 Establish private connectivity between an AWS VPC (in the shared sandbox account)
-and a Snowflake Business Critical account in us-east-1 using AWS PrivateLink, ensuring
+and a Snowflake Business Critical account in us-west-2 using AWS PrivateLink, ensuring
 all traffic between the VPC and Snowflake traverses the AWS backbone (never the
 public internet).
 
@@ -19,7 +19,7 @@ public internet).
 
 ### FR-02: VPC Provisioning
 
-- Create a VPC in us-east-1 within the sandbox account
+- Create a VPC in us-west-2 within the sandbox account
 - 3 Availability Zones (public + private subnets in each)
 - CIDR block: 10.0.0.0/16 (or configurable via variable)
 - DNS hostnames and DNS support enabled
@@ -36,7 +36,7 @@ public internet).
 
 ### FR-04: S3 Gateway Endpoint (Internal Stage Traffic)
 
-- Create `aws_vpc_endpoint` of type "Gateway" for `com.amazonaws.us-east-1.s3`
+- Create `aws_vpc_endpoint` of type "Gateway" for `com.amazonaws.us-west-2.s3`
 - Associate with route tables for private subnets
 - This ensures Snowflake internal stage traffic (SELECT results, COPY INTO, etc.)
   stays on the AWS backbone
@@ -44,7 +44,7 @@ public internet).
 ### FR-05: DNS Configuration (Route53)
 
 - **Hosted Zone 1:** Private hosted zone for `privatelink.snowflakecomputing.com`
-  - CNAME record: `<account_identifier>.us-east-1.privatelink.snowflakecomputing.com`
+  - CNAME record: `<account_identifier>.us-west-2.privatelink.snowflakecomputing.com`
     → VPC Endpoint regional DNS name
   - CNAME record: OCSP URL → VPC Endpoint regional DNS name
   - Associate zone with the VPC
@@ -137,7 +137,7 @@ Resource-specific `Name` tags are also required on all resources that support th
 ## 4. Constraints
 
 - PrivateLink requires Snowflake Business Critical edition (confirmed available)
-- AWS region and Snowflake region MUST match (both us-east-1)
+- AWS region and Snowflake region MUST match (both us-west-2)
 - Cross-region PrivateLink is possible via custom endpoint service but out of scope
 - SSO over PrivateLink is exclusive — cannot have both public and PrivateLink SSO
   simultaneously (out of scope for initial implementation)
@@ -149,9 +149,9 @@ Resource-specific `Name` tags are also required on all resources that support th
 
 - The sandbox account (`06_sandbox`) is already provisioned and applied in `aws-org-infra`
 - The management account admin user has credentials configured locally
-- A Snowflake Business Critical account exists in us-east-1 with ACCOUNTADMIN access
+- A Snowflake Business Critical account exists in us-west-2 with ACCOUNTADMIN access
 - The GitHub repo `snowflake_aws_privatelink` will be created as part of this project
-- The existing S3 state bucket is accessible from us-east-1 (bucket is in af-south-1
+- The existing S3 state bucket is accessible from us-west-2 (bucket is in af-south-1
   but S3 backends work cross-region)
 
 ## 6. Out of Scope

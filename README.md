@@ -8,7 +8,7 @@ the public internet.
 
 ```mermaid
 flowchart TB
-    subgraph AWS["AWS us-east-1"]
+    subgraph AWS["AWS us-west-2"]
         subgraph SANDBOX["Sandbox Account"]
             subgraph VPC["VPC 10.0.0.0/16"]
                 VPCE["VPC Endpoint (Interface)\nSnowflake PrivateLink"]
@@ -19,7 +19,7 @@ flowchart TB
         ROLE["IAM Role: snowflake-privatelink-admin\n(Management Account)"]
     end
 
-    subgraph SF["Snowflake (us-east-1)"]
+    subgraph SF["Snowflake (us-west-2)"]
         SFACCT["Business Critical Account"]
     end
 
@@ -63,7 +63,7 @@ app/                     # Application code (future)
 
 - Terraform >= 1.10.0, < 2.0.0
 - AWS CLI configured with management account credentials
-- Snowflake Business Critical account in us-east-1 with ACCOUNTADMIN access
+- Snowflake Business Critical account in us-west-2 with ACCOUNTADMIN access
 - `snowflake-privatelink-admin` IAM role applied (see aws-org-infra)
 
 ## Related

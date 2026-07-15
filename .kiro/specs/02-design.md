@@ -4,22 +4,22 @@
 
 ```mermaid
 flowchart TB
-    subgraph AWS["AWS (us-east-1)"]
+    subgraph AWS["AWS (us-west-2)"]
         subgraph MGMT["Management Account"]
             ROLE["IAM Role: snowflake-privatelink-admin"]
         end
 
         subgraph SANDBOX["Sandbox Account"]
             subgraph VPC["VPC 10.0.0.0/16"]
-                subgraph AZ1["AZ us-east-1a"]
+                subgraph AZ1["AZ us-west-2a"]
                     PUB1["Public Subnet"]
                     PRIV1["Private Subnet"]
                 end
-                subgraph AZ2["AZ us-east-1b"]
+                subgraph AZ2["AZ us-west-2b"]
                     PUB2["Public Subnet"]
                     PRIV2["Private Subnet"]
                 end
-                subgraph AZ3["AZ us-east-1c"]
+                subgraph AZ3["AZ us-west-2c"]
                     PUB3["Public Subnet"]
                     PRIV3["Private Subnet"]
                 end
@@ -33,7 +33,7 @@ flowchart TB
         end
     end
 
-    subgraph SF["Snowflake VPC (us-east-1)"]
+    subgraph SF["Snowflake VPC (us-west-2)"]
         SFACCT["Business Critical Account\nPrivateLink Authorized\nNetwork Policy: VPC CIDR only"]
     end
 
@@ -196,7 +196,7 @@ File: `aws-org-infra/01_org_setup/03_security/01_management_iam/snowflake_privat
 
 ```hcl
 provider "aws" {
-  region = "us-east-1"
+  region = "us-west-2"
 
   # Assume role into the sandbox account
   assume_role {
@@ -245,7 +245,7 @@ provider "snowflake" {
 | VPC Name / CIDR | `aws_vpc.main` resource, variable `vpc_cidr` |
 | Security Group ID | `aws_security_group.snowflake_privatelink.id` |
 | PrivateLink-vpce-id | `data.snowflake_system_get_privatelink_config.this.aws_vpce_id` |
-| Snowflake Region | Variable `snowflake_region` (us-east-1) |
+| Snowflake Region | Variable `snowflake_region` (us-west-2) |
 | privatelink-account-url | `data.snowflake_system_get_privatelink_config.this.privatelink_account_url` |
 | Endpoint DNS Name | `aws_vpc_endpoint.snowflake.dns_entry[0].dns_name` |
 | EC2 Instance | `aws_instance.test` resource |
@@ -285,7 +285,7 @@ cd ../03_ec2_test && terraform init && terraform apply
 # 3. Test connectivity (SSH into EC2, run tests)
 ssh -i <key.pem> ec2-user@<public-ip>
 # Inside EC2:
-nslookup <account>.us-east-1.privatelink.snowflakecomputing.com
+nslookup <account>.us-west-2.privatelink.snowflakecomputing.com
 telnet <endpoint-ip> 443
 
 # 4. After tests pass — lock down

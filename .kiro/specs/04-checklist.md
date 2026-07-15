@@ -10,8 +10,8 @@ Adapted from the book's Table 2-2. Items marked with 🤖 are managed by Terrafo
 | 1 | 🖐️ Snowflake account identifier | _fill in_ | ☐ |
 | 2 | 🖐️ Snowflake organization name | _fill in_ | ☐ |
 | 3 | 🤖 AWS Sandbox Account ID | `terraform output` from `06_sandbox` | ☐ |
-| 4 | 🤖 AWS Region | us-east-1 | ☐ |
-| 5 | 🖐️ Snowflake Region | us-east-1 (AWS_US_EAST_1) | ☐ |
+| 4 | 🤖 AWS Region | us-west-2 | ☐ |
+| 5 | 🖐️ Snowflake Region | us-west-2 (AWS_US_WEST_2) | ☐ |
 | 6 | 🖐️ Snowflake edition confirmed Business Critical | Yes/No | ☐ |
 | 7 | 🤖 IAM Role ARN (`snowflake-privatelink-admin`) | `terraform output` | ☐ |
 

@@ -14,17 +14,17 @@
 #   ./test-connectivity.sh <snowflake_account> <region>
 #
 # Example:
-#   ./test-connectivity.sh xy12345 us-east-1
+#   ./test-connectivity.sh xy12345 us-west-2
 # ============================================================
 
 set -euo pipefail
 
 ACCOUNT="${1:-}"
-REGION="${2:-us-east-1}"
+REGION="${2:-us-west-2}"
 
 if [ -z "$ACCOUNT" ]; then
   echo "Usage: $0 <snowflake_account> [region]"
-  echo "Example: $0 xy12345 us-east-1"
+  echo "Example: $0 xy12345 us-west-2"
   exit 1
 fi
 

@@ -32,14 +32,14 @@
 
 ### Task 1.1: VPC and Subnets
 - [ ] Create `aws_vpc.main` with CIDR `10.0.0.0/16`, DNS hostnames + support enabled
-- [ ] Create 3 public subnets (one per AZ: us-east-1a, 1b, 1c)
+- [ ] Create 3 public subnets (one per AZ: us-west-2a, 2b, 2c)
 - [ ] Create 3 private subnets (one per AZ)
 - [ ] Tag all subnets with `Name`, `project:*` tags, and `network:tier` (public/private)
 
 ### Task 1.2: Gateways and NAT
 - [ ] Create Internet Gateway, attach to VPC
 - [ ] Create Elastic IP for NAT Gateway
-- [ ] Create NAT Gateway in 1 AZ (us-east-1a public subnet)
+- [ ] Create NAT Gateway in 1 AZ (us-west-2a public subnet)
 - [ ] Tag with `Name` and project tags
 
 ### Task 1.3: Route Tables
@@ -84,15 +84,15 @@
 
 ### Task 2.4: S3 Gateway Endpoint
 - [ ] Create `aws_vpc_endpoint.s3` with type "Gateway"
-- [ ] Service name: `com.amazonaws.us-east-1.s3`
+- [ ] Service name: `com.amazonaws.us-west-2.s3`
 - [ ] Associate with private route tables
 - [ ] Tag with `Name = snowflake-privatelink-s3-gateway`
 
 ### Task 2.5: Route53 Private Hosted Zone (Snowflake)
 - [ ] Create zone: `privatelink.snowflakecomputing.com`
 - [ ] Associate with the VPC
-- [ ] CNAME record: `<account>.us-east-1` → VPCE regional DNS name
-- [ ] CNAME record: `ocsp.<account>.us-east-1` → VPCE regional DNS name
+- [ ] CNAME record: `<account>.us-west-2` → VPCE regional DNS name
+- [ ] CNAME record: `ocsp.<account>.us-west-2` → VPCE regional DNS name
 - [ ] Tag zone with project tags
 
 ### Task 2.6: Route53 Private Hosted Zone (S3 Stage) — if needed
@@ -124,7 +124,7 @@
 ### Task 3.3: EC2 Instance
 - [ ] Amazon Linux 2023 AMI (latest, use `data.aws_ami`)
 - [ ] Instance type: `t3.micro`
-- [ ] Place in public subnet (us-east-1a)
+- [ ] Place in public subnet (us-west-2a)
 - [ ] Associate public IP
 - [ ] Attach key pair and security group
 - [ ] User data: install telnet, nslookup tools
@@ -139,7 +139,7 @@
 
 ### Task 4.1: SSH and Test
 - [ ] SSH into EC2 instance
-- [ ] Run `nslookup <account>.us-east-1.privatelink.snowflakecomputing.com`
+- [ ] Run `nslookup <account>.us-west-2.privatelink.snowflakecomputing.com`
 - [ ] Verify returned IPs match VPCE ENI private IPs
 - [ ] Run `telnet <ip> 443` for each AZ — expect "Connected"
 - [ ] Run `telnet <ip> 80` for each AZ — expect "Connected"

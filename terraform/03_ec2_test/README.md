@@ -22,7 +22,7 @@ terraform apply -var="operator_ip=$(curl -s ifconfig.me)/32"
 
 # SSH in and test
 ssh -i <key.pem> ec2-user@<public_ip>
-nslookup <account>.us-east-1.privatelink.snowflakecomputing.com
+nslookup <account>.us-west-2.privatelink.snowflakecomputing.com
 telnet <endpoint_ip> 443
 ```
 

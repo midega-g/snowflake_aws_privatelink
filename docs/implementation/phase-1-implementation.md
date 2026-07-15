@@ -7,7 +7,7 @@
 ## Goal
 
 Provision the foundational VPC networking infrastructure in the AWS sandbox account
-(us-east-1) for the Snowflake PrivateLink project. This is the base layer that all
+(us-west-2) for the Snowflake PrivateLink project. This is the base layer that all
 subsequent workspaces (02_privatelink, 03_ec2_test) depend on via `terraform_remote_state`.
 
 ---
@@ -41,12 +41,12 @@ subsequent workspaces (02_privatelink, 03_ec2_test) depend on via `terraform_rem
 
 | Subnet | CIDR | Usable IPs |
 |--------|------|-----------|
-| Public us-east-1a | 10.0.1.0/24 | 251 |
-| Public us-east-1b | 10.0.2.0/24 | 251 |
-| Public us-east-1c | 10.0.3.0/24 | 251 |
-| Private us-east-1a | 10.0.16.0/20 | 4,091 |
-| Private us-east-1b | 10.0.32.0/20 | 4,091 |
-| Private us-east-1c | 10.0.48.0/20 | 4,091 |
+| Public us-west-2a | 10.0.1.0/24 | 251 |
+| Public us-west-2b | 10.0.2.0/24 | 251 |
+| Public us-west-2c | 10.0.3.0/24 | 251 |
+| Private us-west-2a | 10.0.16.0/20 | 4,091 |
+| Private us-west-2b | 10.0.32.0/20 | 4,091 |
+| Private us-west-2c | 10.0.48.0/20 | 4,091 |
 
 Free space: `10.0.64.0/18` and above reserved for future use (database subnets, additional projects).
 
@@ -120,20 +120,20 @@ The `DenyNonAllowedRegions` SCP (`p-oetdvmvl`) only permitted `af-south-1`:
 ```hcl
 # aws-org-infra/01_org_setup/02_identity/scps/variables.tf
 variable "allowed_regions" {
-  default = ["af-south-1"]  # <-- us-east-1 not allowed!
+  default = ["af-south-1"]  # <-- us-west-2 not allowed!
 }
 ```
 
 EC2 actions (`CreateVpc`, `AllocateAddress`) are not in the SCP's `NotAction` exemption
-list, so they were explicitly denied in us-east-1.
+list, so they were explicitly denied in us-west-2.
 
 ### Fix
 
-Added `us-east-1` to the allowed regions globally:
+Added `us-west-2` to the allowed regions globally:
 
 ```hcl
 variable "allowed_regions" {
-  default = ["af-south-1", "us-east-1"]
+  default = ["af-south-1", "us-east-1", "us-west-2"]
 }
 ```
 
@@ -144,7 +144,7 @@ export AWS_PROFILE=org_mgmt_epf
 cd ~/Desktop/Learning/aws-org-infra/01_org_setup/02_identity/scps
 
 terraform init
-terraform apply -auto-approve -var='allowed_regions=["af-south-1","us-east-1"]'
+terraform apply -auto-approve -var='allowed_regions=["af-south-1","us-east-1","us-west-2"]'
 # Plan: 0 to add, 1 to change, 0 to destroy.
 # aws_organizations_policy.deny_region: Modifying... [id=p-oetdvmvl]
 # Apply complete! Resources: 0 added, 1 changed, 0 destroyed.
@@ -188,7 +188,7 @@ terraform apply -auto-approve
 ### Outputs
 
 ```
-availability_zones     = ["us-east-1a", "us-east-1b", "us-east-1c"]
+availability_zones     = ["us-west-2a", "us-west-2b", "us-west-2c"]
 igw_id                 = "igw-02d42bec2da6c3576"
 nat_gateway_id         = "nat-0cd4037f565f852bb"
 private_route_table_id = "rtb-0e10faf14ced8d3a2"
@@ -203,7 +203,7 @@ vpc_id                 = "vpc-0d9557474d203dd15"
 
 ## Cost Estimate — Phase 1
 
-Pricing data retrieved from AWS Price List API (us-east-1, effective 2026-07-01).
+Pricing data retrieved from AWS Price List API (us-west-2, effective 2026-07-01).
 
 ### Phase 1 Resources (monthly)
 
@@ -279,9 +279,11 @@ Pricing data retrieved from AWS Price List API (us-east-1, effective 2026-07-01)
    NAT gateways take time to provision. Don't abort the apply.
 
 4. **The STS workaround works.** The `sts_region = "us-east-1"` + global endpoint
-   pattern successfully allows cross-region AssumeRole from af-south-1 credentials
-   into us-east-1 resources. This confirms the provider pattern for all subsequent
-   workspaces.
+   (`sts.amazonaws.com`) pattern successfully allows cross-region AssumeRole from
+   af-south-1 credentials into us-west-2 resources. The `sts_region` must be
+   `us-east-1` because the global STS endpoint requires us-east-1 for credential
+   signing, regardless of the target region. This confirms the provider pattern
+   for all subsequent workspaces.
 
 ---
 
@@ -289,7 +291,7 @@ Pricing data retrieved from AWS Price List API (us-east-1, effective 2026-07-01)
 
 | Repository | File | Change |
 |-----------|------|--------|
-| `aws-org-infra` | `01_org_setup/02_identity/scps/variables.tf` | Added `"us-east-1"` to `allowed_regions` default |
+| `aws-org-infra` | `01_org_setup/02_identity/scps/variables.tf` | Added `"us-west-2"` to `allowed_regions` default |
 
 ---
 
@@ -297,7 +299,7 @@ Pricing data retrieved from AWS Price List API (us-east-1, effective 2026-07-01)
 
 | Item | Status |
 |------|--------|
-| VPC (10.0.0.0/16) in us-east-1 | ✅ |
+| VPC (10.0.0.0/16) in us-west-2 | ✅ |
 | 3 public subnets (/24) | ✅ |
 | 3 private subnets (/20) | ✅ |
 | Internet Gateway | ✅ |
@@ -306,7 +308,7 @@ Pricing data retrieved from AWS Price List API (us-east-1, effective 2026-07-01)
 | Private route table (0.0.0.0/0 → NAT) | ✅ |
 | Route table associations | ✅ |
 | Outputs exposed for downstream | ✅ |
-| SCP updated for us-east-1 | ✅ |
+| SCP updated for us-west-2 | ✅ |
 
 ---
 

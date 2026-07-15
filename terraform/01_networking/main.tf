@@ -2,7 +2,7 @@
 # 01_networking/main.tf
 #
 # Provisions VPC networking infrastructure in the sandbox
-# account (us-east-1) for the Snowflake PrivateLink project.
+# account (us-west-2) for the Snowflake PrivateLink project.
 #
 # Resources:
 #   - VPC with DNS support
