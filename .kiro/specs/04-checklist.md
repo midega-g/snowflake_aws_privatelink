@@ -19,9 +19,9 @@ Adapted from the book's Table 2-2. Items marked with 🤖 are managed by Terrafo
 
 | # | Item | Value | Status |
 |---|------|-------|--------|
-| 8 | 🖐️ Federation token generated | `aws sts get-federation-token --name snowflake` | ☐ |
-| 9 | 🖐️ `SYSTEM$AUTHORIZE_PRIVATELINK` executed | Success / "Account is authorized" | ☐ |
-| 10 | 🖐️ `SYSTEM$GET_PRIVATELINK` verification | "Account is authorized for PrivateLink" | ☐ |
+| 8 | 🖐️ Federation token generated | `AWS_PROFILE=org_mgmt_epf ./scripts/authorize-privatelink.sh` | ☐ |
+| 9 | 🖐️ `SYSTEM$AUTHORIZE_PRIVATELINK` executed | "Private link access authorized." | ☐ |
+| 10 | 🖐️ `SYSTEM$GET_PRIVATELINK_AUTHORIZED_ENDPOINTS` | Returns sandbox account ID | ☐ |
 
 ## Phase 1: Networking
 

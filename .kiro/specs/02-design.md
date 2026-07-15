@@ -87,9 +87,11 @@ snowflake_aws_privatelink/
 │   │   ├── provider.tf
 │   │   ├── backend.tf
 │   │   └── versions.tf
-│   ├── 02_privatelink/                # VPCE (Snowflake), S3 gateway, security groups
-│   │   ├── main.tf
-│   │   ├── dns.tf                     # Route53 hosted zones + records
+│   ├── 02_privatelink/                # Auth user, VPCE, S3 gateway, SG, DNS
+│   │   ├── auth.tf                    # IAM user for federation token
+│   │   ├── main.tf                    # Security group, VPCE, S3 gateway
+│   │   ├── dns.tf                     # Route53 hosted zone + CNAME records
+│   │   ├── data.tf                    # Remote state lookups
 │   │   ├── variables.tf
 │   │   ├── outputs.tf
 │   │   ├── provider.tf
@@ -220,12 +222,13 @@ provider "aws" {
 
 ```hcl
 provider "snowflake" {
-  organization_name        = var.snowflake_organization
-  account_name             = var.snowflake_account
+  profile                  = "default"  # reads from ~/.snowflake/config
   role                     = "ACCOUNTADMIN"
   preview_features_enabled = ["snowflake_system_get_privatelink_config_datasource"]
 }
 ```
+
+Authentication is stored in `~/.snowflake/config` (password-based, not committed to git).
 
 ## 7. Security Considerations
 
@@ -234,8 +237,9 @@ provider "snowflake" {
 - **EC2 SSH restricted to operator IP** — not open to internet
 - **EC2 is ephemeral** — stopped after testing, destroyed when PrivateLink is stable
 - **Network policy blocks public access** — applied only after validation succeeds
-- **Federation token not stored** — generated at runtime, used once, discarded
-- **Snowflake provider auth** — uses key-pair authentication or SSO, not password
+- **Federation token not stored** — generated at runtime via auth user, used once, discarded
+- **Auth IAM user scoped to single action** — only `sts:GetFederationToken`, no other access
+- **Snowflake provider auth** — password-based via `~/.snowflake/config` (not committed to git)
 
 ## 8. Checklist (IaC Equivalents)
 
@@ -246,7 +250,7 @@ provider "snowflake" {
 | Security Group ID | `aws_security_group.snowflake_privatelink.id` |
 | PrivateLink-vpce-id | `data.snowflake_system_get_privatelink_config.this.aws_vpce_id` |
 | Snowflake Region | Variable `snowflake_region` (us-west-2) |
-| privatelink-account-url | `data.snowflake_system_get_privatelink_config.this.privatelink_account_url` |
+| privatelink-account-url | `data.snowflake_system_get_privatelink_config.this.account_url` |
 | Endpoint DNS Name | `aws_vpc_endpoint.snowflake.dns_entry[0].dns_name` |
 | EC2 Instance | `aws_instance.test` resource |
 | Key-Pair | `aws_key_pair.test` resource |

@@ -61,11 +61,17 @@
 ## Phase 2: PrivateLink (workspace: `terraform/02_privatelink`)
 
 ### Task 2.1: Snowflake PrivateLink Config Data Source
-- [ ] Configure Snowflake provider with `preview_features_enabled`
+- [ ] Configure Snowflake provider with `profile = "default"` and `preview_features_enabled`
 - [ ] Use `data.snowflake_system_get_privatelink_config.this` to retrieve:
   - `aws_vpce_id` (service name for the VPC endpoint)
-  - `privatelink_account_url`
-  - `privatelink_ocsp_url`
+  - `account_url`
+  - `ocsp_url`
+
+### Task 2.1a: Auth User (for federation token)
+- [ ] Create IAM user `snowflake-privatelink-auth` in sandbox (path `/ephemeral/`)
+- [ ] Inline policy: only `sts:GetFederationToken`
+- [ ] Create access key (output as sensitive)
+- [ ] Scripts read credentials from `terraform output` at runtime
 
 ### Task 2.2: Security Group
 - [ ] Create `aws_security_group.snowflake_privatelink`
