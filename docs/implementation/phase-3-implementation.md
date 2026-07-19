@@ -257,62 +257,52 @@ instance. To apply new user_data, the instance must be destroyed and recreated
 
 ---
 
-## Full Test Summary
-
-| Test | Method | Result |
-|------|--------|--------|
-| DNS resolution | `nslookup` | ✅ Resolves to 3 private IPs (VPCE ENIs) |
-| Port 443 (HTTPS) | `/dev/tcp` | ✅ Connected (all 3 AZs) |
-| Port 80 (OCSP) | `/dev/tcp` | ✅ Connected (all 3 AZs) |
-| SnowSQL query | `snowsql -a ... -q ...` | ✅ Returns QBB21532 / AWS_US_WEST_2 |
-| Traffic path | Private IPs in 10.0.x.x | ✅ No public IPs involved |
-
-**PrivateLink is fully operational.**
-
----
-
 ## Cost Estimate — Phase 3
 
 ### Phase 3 Resources (monthly, while running)
 
 | Resource | Unit Price | Quantity | Monthly Cost |
 |----------|-----------|----------|-------------|
-| EC2 t3.micro (on-demand) | $0.0104/hour | 730 hrs | $7.59 |
+| EC2 t3.micro Linux (on-demand) | $0.0104/hour | 730 hrs | $7.59 |
 | EBS gp3 root volume (8 GB) | $0.08/GB/month | 8 GB | $0.64 |
 | Public IPv4 address | $0.005/hour | 730 hrs | $3.65 |
 | Key Pair | Free | 1 | $0.00 |
 | Security Group | Free | 1 | $0.00 |
 | **Phase 3 Total (running)** | | | **~$11.88/month** |
 
-### Cost When Stopped
+### Cost When Destroyed
 
-| Resource | Monthly Cost |
-|----------|-------------|
-| EBS volume (persists) | $0.64 |
-| Public IP (released) | $0.00 |
-| EC2 compute (stopped) | $0.00 |
-| **Phase 3 Total (stopped)** | **~$0.64/month** |
+All Phase 3 resources: $0.00 (fully destroyed, no persistent volumes).
 
-### Cumulative Cost (All Phases, EC2 running)
+### Cumulative Cost
 
 | Phase | Monthly Cost | Cumulative |
 |-------|-------------|-----------|
 | Phase 0 (IAM) | $0.01 | $0.01 |
 | Phase 1 (Networking) | $36.55 | $36.56 |
 | Phase 2 (PrivateLink) | $22.45 | $59.01 |
-| Phase 3 (EC2, running) | $11.88 | **$70.89/month** |
+| Phase 3 (Linux EC2, running) | $11.88 | **$70.89/month** |
 
-### Recommendation
+---
 
-Destroy the EC2 instance after validation is complete (`terraform destroy` in
-`03_ec2_test`). This removes ~$11.88/month. The instance can be recreated at
-any time with `terraform apply` — the key pair and security group are recreated
-fresh each time (user_data handles SnowSQL install and config automatically).
+## Lessons Learned
+
+1. **user_data only runs on first boot.** Modifying user_data and running `terraform apply`
+   updates the state but does not re-execute on the running instance. Use
+   `-replace=aws_instance.test` to force recreation.
+
+2. **SSH timeout after IP change.** If your public IP changes between sessions (ISP,
+   VPN, etc.), the security group still has the old IP. Re-run
+   `terraform apply -var="operator_ip=$(curl -s ifconfig.me)/32"` to update.
+
+3. **SnowSQL PrivateLink account format.** Use `<account_locator>.<region>.privatelink`
+   — SnowSQL appends `.snowflakecomputing.com` automatically. The `--private-host-suffix`
+   flag does not exist in SnowSQL 1.5.0.
 
 ---
 
 ## Pending
 
-- [ ] Stop or destroy EC2 after all tests pass
-- [ ] Commit and push Phase 3 changes
-- [ ] **Phase 5:** Network policy (block public access after validation)
+- [x] Connectivity tests (DNS, ports, SnowSQL) — all pass
+- [ ] **Phase 4:** Snowsight validation (Windows EC2, RDP, browser test, CNAME records)
+- [ ] **Phase 5:** Network policy (VPC CIDR + operator IP, demonstrate lockdown)
