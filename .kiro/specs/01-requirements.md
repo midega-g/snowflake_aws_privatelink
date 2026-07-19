@@ -47,17 +47,26 @@ public internet).
   - CNAME record: `<account_identifier>.us-west-2.privatelink.snowflakecomputing.com`
     → VPC Endpoint regional DNS name
   - CNAME record: OCSP URL → VPC Endpoint regional DNS name
+  - CNAME record: Snowsight regionless URL → VPC Endpoint regional DNS name
+  - CNAME record: Snowsight regional URL → VPC Endpoint regional DNS name
   - Associate zone with the VPC
 
 - **Hosted Zone 2:** Private hosted zone for Snowflake internal S3 bucket stage URL
   - A record pointing to S3 gateway endpoint IPs
   - Associate zone with the VPC
 
-### FR-06: EC2 Test Instance (Connectivity Validation)
+### FR-06: EC2 Test Instances (Connectivity Validation)
 
-- Amazon Linux 2023 AMI in a public subnet
-- Key pair for SSH access
-- Security group allowing SSH (port 22) from operator IP only
+- **Linux instance** (Amazon Linux 2023) in a public subnet:
+  - Key pair for SSH access
+  - Security group allowing SSH (port 22) from operator IP only
+  - SnowSQL pre-installed via user_data
+  - Used for: nslookup, telnet, SnowSQL connectivity tests
+
+- **Windows instance** (Windows Server 2022) in a public subnet:
+  - Key pair for RDP password decryption
+  - Security group allowing RDP (port 3389) from operator IP only
+  - Used for: browser-based Snowsight access via PrivateLink (visual proof)
 - Used to run: `nslookup`, `telnet` (port 443/80), and SnowSQL connection test
 - Stop after initial validation; destroy when PrivateLink is confirmed stable
 - Terraform workspace can be destroyed independently without affecting PrivateLink
@@ -65,9 +74,12 @@ public internet).
 ### FR-07: Network Policy (Block Public Access — Post-Validation)
 
 - After PrivateLink is validated, create a Snowflake network policy restricting
-  access to the VPC CIDR range only
-- This blocks all public internet access to the Snowflake account
-- Implemented via `snowflake_network_policy` resource
+  access to:
+  - VPC CIDR (10.0.0.0/16) — PrivateLink traffic from within VPC
+  - Operator IP (configurable) — debug/admin access from laptop
+- All other public internet access to the Snowflake account is blocked
+- Implemented via `snowflake_network_policy` + `snowflake_network_rule` resources
+- Demonstrate enforcement: remove operator IP → verify laptop blocked → re-add
 
 ### FR-08: IAM Role in Management Account
 
@@ -159,6 +171,9 @@ Resource-specific `Name` tags are also required on all resources that support th
 - AWS Direct Connect
 - Cross-region PrivateLink
 - SSO configuration over PrivateLink
-- Snowflake internal stage private connectivity (outbound PrivateLink from Snowflake)
 - Multi-account PrivateLink (connecting multiple AWS accounts to one Snowflake account)
 - Automated security monitoring of authorized endpoints (noted as future enhancement)
+- S3 Interface Endpoint for internal stages (recommended by Snowflake for Iceberg/managed
+  storage — current S3 Gateway Endpoint covers standard use cases; interface endpoint is
+  a future upgrade if Iceberg tables are adopted)
+- VPN/Direct Connect for laptop access (operator uses allowed IP in network policy instead)

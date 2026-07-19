@@ -186,10 +186,11 @@ File: `aws-org-infra/01_org_setup/03_security/01_management_iam/snowflake_privat
 | Action | Workspace | When |
 |--------|-----------|------|
 | Provision VPC | `terraform/01_networking` | First |
-| Create VPCE + DNS | `terraform/02_privatelink` | After networking |
-| Spin up EC2 for testing | `terraform/03_ec2_test` | After privatelink |
-| Run connectivity tests | `scripts/test-connectivity.sh` | Via SSH into EC2 |
+| Create VPCE + DNS (incl. Snowsight CNAMEs) | `terraform/02_privatelink` | After networking |
+| Spin up EC2 for testing (Linux + Windows) | `terraform/03_ec2_test` | After privatelink |
+| Run connectivity tests (SSH + RDP) | `scripts/test-connectivity.sh` + browser | Via SSH/RDP into EC2 |
 | Apply network policy | `terraform/04_network_policy` | After tests pass |
+| Demonstrate lockdown | Manual (remove/add IP) | After policy active |
 | Destroy EC2 test | `terraform destroy` in `03_ec2_test` | After validation |
 
 ## 6. Provider Configuration

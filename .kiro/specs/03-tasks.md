@@ -99,6 +99,8 @@
 - [ ] Associate with the VPC
 - [ ] CNAME record: `<account>.us-west-2` → VPCE regional DNS name
 - [ ] CNAME record: `ocsp.<account>.us-west-2` → VPCE regional DNS name
+- [ ] CNAME record: `regionless-snowsight-privatelink-url` → VPCE regional DNS name
+- [ ] CNAME record: `snowsight-privatelink-url` → VPCE regional DNS name
 - [ ] Tag zone with project tags
 
 ### Task 2.6: Route53 Private Hosted Zone (S3 Stage) — if needed
@@ -143,15 +145,31 @@
 
 ## Phase 4: Connectivity Validation
 
-### Task 4.1: SSH and Test
+### Task 4.1: SSH and Test (Linux EC2)
 - [ ] SSH into EC2 instance
 - [ ] Run `nslookup <account>.us-west-2.privatelink.snowflakecomputing.com`
 - [ ] Verify returned IPs match VPCE ENI private IPs
 - [ ] Run `telnet <ip> 443` for each AZ — expect "Connected"
 - [ ] Run `telnet <ip> 80` for each AZ — expect "Connected"
-- [ ] Optionally: install SnowSQL and connect via privatelink URL
+- [ ] Connect via SnowSQL: `snowsql -a <account>.us-west-2.privatelink -u <user>`
+- [ ] Verify `CURRENT_REGION()` returns `AWS_US_WEST_2`
 
-### Task 4.2: Document Results
+### Task 4.2: RDP and Test (Windows EC2)
+- [ ] Create Windows EC2 (separate instance in same VPC/subnet)
+- [ ] Security group: RDP (port 3389) from operator IP only + all outbound
+- [ ] RDP into Windows instance
+- [ ] Open browser → navigate to Snowsight privatelink URL
+- [ ] Verify Snowflake login page loads and login works
+- [ ] Screenshot as evidence for article
+
+### Task 4.3: Demonstrate Lockdown
+- [ ] From EC2 (inside VPC): `curl -I <snowsight-privatelink-url>` → HTTP 200
+- [ ] From laptop (your IP allowed): Snowsight loads normally
+- [ ] Remove your IP from network policy → laptop access blocked
+- [ ] Re-add your IP → access restored
+- [ ] Document results
+
+### Task 4.4: Document Results
 - [ ] Record test results in `docs/checklist.md`
 - [ ] Screenshot or log output as evidence
 
@@ -161,15 +179,25 @@
 
 ### Task 5.1: Snowflake Network Policy
 - [ ] Create `snowflake_network_policy` resource
-- [ ] Allowed IPs: VPC CIDR (10.0.0.0/16) or specific subnet CIDRs
-- [ ] Block all other access
+- [ ] Create network rules:
+  - Rule 1: VPC CIDR (10.0.0.0/16) — PrivateLink traffic
+  - Rule 2: Operator IP (var.operator_ip) — debug/admin access
+- [ ] Allowed list: both network rules
+- [ ] Blocked list: all other access (implicit)
 - [ ] NOTE: Only activate AFTER confirming PrivateLink works. Locking down
       prematurely will lock you out of Snowflake.
 
 ### Task 5.2: Activate Network Policy
 - [ ] Attach to account level
-- [ ] Verify you can still connect via PrivateLink after activation
+- [ ] Verify you can still connect via PrivateLink after activation (from EC2)
+- [ ] Verify Snowsight works from your laptop (operator IP allowed)
 - [ ] Document rollback procedure (how to remove policy if locked out)
+
+### Task 5.3: Demonstrate Enforcement
+- [ ] Temporarily remove operator IP from allowed list
+- [ ] Verify laptop is blocked from Snowsight
+- [ ] Re-add operator IP
+- [ ] Document the before/after for article
 
 ---
 
