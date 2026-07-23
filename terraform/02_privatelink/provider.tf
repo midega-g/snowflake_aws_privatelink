@@ -13,9 +13,10 @@ provider "aws" {
     role_arn = "arn:aws:iam::${data.terraform_remote_state.sandbox.outputs.sandbox_account_id}:role/OrganizationAccountAccessRole"
   }
 
-  # STS workaround: af-south-1 is opt-in and its regional STS endpoint
-  # rejects cross-region AssumeRole. Route through the global endpoint
-  # (us-east-1) instead.
+  # STS workaround: af-south-1 is an opt-in region whose regional STS
+  # endpoint rejects cross-region AssumeRole. Routing through the global
+  # endpoint (sts.amazonaws.com) resolves this. The global endpoint
+  # requires sts_region = "us-east-1" for request signing.
   sts_region = "us-east-1"
 
   endpoints {

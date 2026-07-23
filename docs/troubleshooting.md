@@ -39,15 +39,20 @@ to something other than `us-east-1`.
 
 **Fix:** In provider.tf:
 ```hcl
-sts_region = "us-east-1"  # Always us-east-1 for global endpoint
+sts_region = "us-east-1"  # Required for global endpoint request signing
 
 endpoints {
   sts = "https://sts.amazonaws.com"
 }
 ```
 
-The global STS endpoint requires `us-east-1` for credential signing regardless of your
-target region.
+**Why this happens:** Opt-in regions (af-south-1, me-south-1, ap-east-1, etc.) have
+regional STS endpoints that reject cross-region AssumeRole. The workaround is to route
+through the global endpoint, which requires `us-east-1` for request signing.
+
+**When this does NOT apply:** If your credentials and resources are both in standard
+regions (us-east-1, us-west-2, eu-west-1, etc.), you don't need the `sts_region` or
+`endpoints` blocks at all.
 
 ---
 
