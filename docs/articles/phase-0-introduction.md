@@ -253,7 +253,7 @@ Reads credentials from `~/.snowflake/config`:
 
 ```hcl
 provider "snowflake" {
-  profile                  = "default"
+  profile                  = "snowflake-privatelink-profile"
   role                     = "ACCOUNTADMIN"
   preview_features_enabled = ["snowflake_system_get_privatelink_config_datasource"]
 }
@@ -262,7 +262,7 @@ provider "snowflake" {
 The config file (not committed to git):
 
 ```toml
-[default]
+[snowflake-privatelink-profile]
 organization_name = "<your-org>"
 account_name = "<your-account>"
 user = "<your-user>"

@@ -36,7 +36,7 @@ provider "aws" {
 }
 
 provider "snowflake" {
-  profile                  = "default"
+  profile                  = "snowflake-privatelink-profile"
   role                     = "ACCOUNTADMIN"
   preview_features_enabled = ["snowflake_system_get_privatelink_config_datasource"]
 }

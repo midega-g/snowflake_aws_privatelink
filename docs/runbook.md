@@ -166,7 +166,7 @@ terraform destroy
 | System | Method | Location |
 |--------|--------|----------|
 | AWS | CLI profile | `~/.aws/config` (profile: `org_mgmt_epf`) |
-| Snowflake (Terraform) | Config file | `~/.snowflake/config` (profile: `default`) |
+| Snowflake (Terraform) | Config file | `~/.snowflake/config` (profile: `snowflake-privatelink-profile`) |
 | Snowflake (SnowSQL) | Password prompt or `SNOWSQL_PWD` env var | Runtime |
 | EC2 SSH | Key file | `terraform/03_ec2_test/snowflake-privatelink-test-key.pem` |
 | EC2 RDP | Decrypted password | `terraform output -raw windows_admin_password \| base64 -d \| openssl pkeyutl -decrypt -inkey ./snowflake-privatelink-test-key.pem` |

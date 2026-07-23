@@ -114,8 +114,13 @@ EOF
 
 **Cause:** Your IP is not in the network policy's allowed list.
 
-**Fix (from inside VPC):**
+**Fix — Option 1: From inside VPC (most reliable):**
 ```bash
+# If EC2 doesn't exist, create it first:
+cd terraform/03_ec2_test
+terraform apply -var="operator_ip=$(curl -s ifconfig.me)/32"
+
+# SSH in and unset the policy
 ssh -i ./snowflake-privatelink-test-key.pem ec2-user@<linux_ec2_ip>
 SNOWSQL_PWD='<password>' ~/bin/snowsql \
   -a qbb21532.us-west-2.privatelink -u SNOWLEARN \
@@ -123,14 +128,40 @@ SNOWSQL_PWD='<password>' ~/bin/snowsql \
   -q "USE ROLE ACCOUNTADMIN; ALTER ACCOUNT UNSET NETWORK_POLICY;"
 ```
 
-If EC2 doesn't exist, create it first:
-```bash
-cd terraform/03_ec2_test
-terraform apply -var="operator_ip=$(curl -s ifconfig.me)/32"
-```
-
 The VPC CIDR (`10.0.0.0/16`) is always in the policy — EC2 inside the VPC can always
 connect.
+
+**Fix — Option 2: Via Snowflake web UI (may not work with all policies):**
+
+Try logging in at `https://app.snowflake.com/<ORG>/<ACCOUNT>` — this global URL
+sometimes bypasses the policy for the initial login. If you can access a worksheet:
+
+```sql
+USE ROLE ACCOUNTADMIN;
+ALTER ACCOUNT UNSET NETWORK_POLICY;
+-- or to completely remove:
+DROP NETWORK POLICY PRIVATELINK_ACCESS_POLICY;
+```
+
+**Note:** This does NOT always work. If the policy blocks `app.snowflake.com` traffic
+too (which it did in our testing), Option 1 (EC2 inside VPC) is the only reliable
+recovery path.
+
+**Fix — Option 3: Terraform destroy (if Terraform itself isn't blocked):**
+```bash
+cd terraform/04_network_policy
+terraform destroy -var='operator_ip=["0.0.0.0/32"]'
+```
+
+This fails if Terraform's connection to Snowflake is also blocked — use Option 1 first.
+
+**SnowSQL note:** After reinstalling SnowSQL (e.g., on a fresh EC2), if you see
+"SnowSQL was not found in ~/.snowsql", reinstall it cleanly:
+```bash
+rm -rf ~/bin/snowsql ~/.snowsql
+curl -s -O https://sfc-repo.snowflakecomputing.com/snowsql/bootstrap/1.5/linux_x86_64/snowsql-1.5.0-linux_x86_64.bash
+SNOWSQL_DEST=~/bin SNOWSQL_LOGIN_SHELL=~/.bashrc bash snowsql-1.5.0-linux_x86_64.bash
+```
 
 ---
 
