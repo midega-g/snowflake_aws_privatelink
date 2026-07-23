@@ -9,6 +9,6 @@
 # ============================================================
 
 provider "snowflake" {
-  profile = "snowflake-privatelink-profile"
+  profile = var.snowflake_profile
   role    = "ACCOUNTADMIN"
 }

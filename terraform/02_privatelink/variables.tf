@@ -21,3 +21,9 @@ variable "state_region" {
   type        = string
   default     = "af-south-1"
 }
+
+variable "snowflake_profile" {
+  description = "Snowflake config profile name. Set to null in CI (uses env vars instead)."
+  type        = string
+  default     = "snowflake-privatelink-profile"
+}

@@ -122,7 +122,7 @@ jobs:
 
       - name: Terraform plan
         id: plan
-        run: terraform plan -no-color -input=false
+        run: terraform plan -no-color -input=false -var='snowflake_profile=null'
         continue-on-error: true
 
       - name: Post plan to PR
@@ -206,7 +206,7 @@ jobs:
         run: terraform init
 
       - name: Terraform apply
-        run: terraform apply -auto-approve -input=false
+        run: terraform apply -auto-approve -input=false -var='snowflake_profile=null'
 
   # =============================================================================
   # NOTE: 03_ec2_test and 04_network_policy are excluded from CI/CD

@@ -14,3 +14,9 @@ variable "operator_ip" {
   description = "Operator's public IP(s) in CIDR notation for debug/admin access. Can be a single IP or list."
   type        = list(string)
 }
+
+variable "snowflake_profile" {
+  description = "Snowflake config profile name. Set to null in CI (uses env vars instead)."
+  type        = string
+  default     = "snowflake-privatelink-profile"
+}
