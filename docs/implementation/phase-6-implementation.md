@@ -72,7 +72,12 @@ Saves ~$38.95/month. Steady-state cost is now **~$59.01/month** (NAT + VPCE + Ro
 | Event | Action | Workspaces |
 |-------|--------|-----------|
 | PR to main (terraform/ changed) | `terraform plan` + post comment | 01_networking, 02_privatelink |
-| Push to main (merge) | `terraform apply -auto-approve` | 01_networking, 02_privatelink |
+| Push to main (merge) | Plan-only (apply disabled) | 01_networking, 02_privatelink |
+
+**Note:** Apply jobs are commented out in the workflow. CI validates code correctness
+(fmt, validate, plan) but does not create resources. Apply is done manually when
+infrastructure is needed. To enable auto-apply for production, uncomment the apply
+jobs in the workflow file.
 
 ### Excluded from CI/CD
 
@@ -83,13 +88,14 @@ Saves ~$38.95/month. Steady-state cost is now **~$59.01/month** (NAT + VPCE + Ro
 
 ### Workflow File
 
-`.github/workflows/terraform.yml` — 217 lines covering:
+`.github/workflows/terraform.yml` covering:
 - Format check (`terraform fmt -check`)
 - Init + validate
 - Plan with output capture
 - PR comment with plan details
-- Apply on merge (with `environment: sandbox` protection)
+- Apply jobs commented out (uncomment for production auto-deploy)
 - Dependency ordering (`needs:` between workspaces)
+- Snowflake profile: empty string in CI triggers env var fallback
 
 ### Authentication
 

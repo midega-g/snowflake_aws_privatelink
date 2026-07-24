@@ -151,62 +151,62 @@ jobs:
         run: exit 1
 
   # =============================================================================
-  # APPLY — only on push to main (after merge)
+  # APPLY — disabled (plan-only CI)
+  #
+  # The apply jobs below are commented out. This project uses plan-only CI:
+  # - CI validates code correctness (fmt, validate, plan)
+  # - Apply is done manually when infrastructure is needed
+  # - This prevents resources from being created on every push
+  #
+  # To enable auto-apply, uncomment the jobs below. Resources will be created
+  # on every merge to main that touches terraform/ files.
   # =============================================================================
 
-  apply-networking:
-    name: 'Apply: 01_networking'
-    runs-on: ubuntu-latest
-    needs: plan-networking
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: sandbox
-    defaults:
-      run:
-        working-directory: terraform/01_networking
-    steps:
-      - uses: actions/checkout@v4
+  # apply-networking:
+  #   name: 'Apply: 01_networking'
+  #   runs-on: ubuntu-latest
+  #   needs: plan-networking
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   environment: sandbox
+  #   defaults:
+  #     run:
+  #       working-directory: terraform/01_networking
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: ${{ env.TF_VERSION }}
+  #     - uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+  #         aws-region: ${{ env.AWS_REGION }}
+  #     - name: Terraform init
+  #       run: terraform init
+  #     - name: Terraform apply
+  #       run: terraform apply -auto-approve -input=false
 
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Terraform init
-        run: terraform init
-
-      - name: Terraform apply
-        run: terraform apply -auto-approve -input=false
-
-  apply-privatelink:
-    name: 'Apply: 02_privatelink'
-    runs-on: ubuntu-latest
-    needs: [plan-privatelink, apply-networking]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: sandbox
-    defaults:
-      run:
-        working-directory: terraform/02_privatelink
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Terraform init
-        run: terraform init
-
-      - name: Terraform apply
-        run: terraform apply -auto-approve -input=false -var='snowflake_profile='
+  # apply-privatelink:
+  #   name: 'Apply: 02_privatelink'
+  #   runs-on: ubuntu-latest
+  #   needs: [plan-privatelink, apply-networking]
+  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  #   environment: sandbox
+  #   defaults:
+  #     run:
+  #       working-directory: terraform/02_privatelink
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: hashicorp/setup-terraform@v3
+  #       with:
+  #         terraform_version: ${{ env.TF_VERSION }}
+  #     - uses: aws-actions/configure-aws-credentials@v4
+  #       with:
+  #         role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+  #         aws-region: ${{ env.AWS_REGION }}
+  #     - name: Terraform init
+  #       run: terraform init
+  #     - name: Terraform apply
+  #       run: terraform apply -auto-approve -input=false -var='snowflake_profile='
 
   # =============================================================================
   # NOTE: 03_ec2_test and 04_network_policy are excluded from CI/CD

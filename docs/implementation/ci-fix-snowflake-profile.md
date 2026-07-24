@@ -120,11 +120,30 @@ access paths. EC2 inside VPC remains the only reliable recovery method.
    profile is null/unset, it reads from `SNOWFLAKE_*` environment variables. This
    is the intended CI pattern.
 
-3. **Destroyed state breaks downstream workspaces.** If you destroy `01_networking`,
-   any workspace that reads its outputs will fail. This is correct — infrastructure
-   has a dependency order in both creation and existence.
+3. **Passing `-var='snowflake_profile=null'` sends the string "null", not actual null.**
+   Terraform CLI cannot pass a true null value. The fix is to pass an empty string
+   (`-var='snowflake_profile='`) and use a conditional in the provider:
+   ```hcl
+   profile = var.snowflake_profile != "" ? var.snowflake_profile : null
+   ```
 
-4. **SnowSQL user_data worked on recreate.** The user_data fix (installing SnowSQL +
+4. **Destroyed state breaks downstream *plan* but not downstream *apply*.**
+   If `01_networking` state is empty, `02_privatelink` plan fails because outputs
+   don't exist. However, in the CI workflow, the apply job for `02_privatelink`
+   depends on `apply-networking` completing first (`needs: [apply-networking]`),
+   so by the time privatelink applies, networking state is populated.
+   
+   The plan-only check (used in PRs) will still fail if upstream state is empty —
+   this is expected and informative: "you can't deploy this until networking exists."
+
+5. **SnowSQL user_data worked on recreate.** The user_data fix (installing SnowSQL +
    config on first boot) proved itself — no manual installation needed on the fresh EC2.
    However, the initial SnowSQL bootstrap had a path issue (`~/.snowsql` not found)
    that required a clean reinstall.
+
+6. **CI apply creates real resources.** When the CI workflow includes apply jobs,
+   every merge to main that touches `terraform/` files creates AWS resources. For
+   test/sandbox projects, switch to **plan-only CI** (validate code correctness
+   without deploying) and apply manually when infrastructure is needed. The apply
+   jobs are commented out in the workflow for reference — uncomment when moving to
+   production where auto-deploy is desired.
