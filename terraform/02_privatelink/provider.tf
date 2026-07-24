@@ -36,7 +36,7 @@ provider "aws" {
 }
 
 provider "snowflake" {
-  profile                  = var.snowflake_profile
+  profile                  = var.snowflake_profile != "" ? var.snowflake_profile : null
   role                     = "ACCOUNTADMIN"
   preview_features_enabled = ["snowflake_system_get_privatelink_config_datasource"]
 }

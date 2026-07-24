@@ -9,6 +9,6 @@
 # ============================================================
 
 provider "snowflake" {
-  profile = var.snowflake_profile
+  profile = var.snowflake_profile != "" ? var.snowflake_profile : null
   role    = "ACCOUNTADMIN"
 }
