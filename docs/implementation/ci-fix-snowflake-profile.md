@@ -62,9 +62,34 @@ has no outputs (empty state). The `02_privatelink` workspace references those ou
 and fails because they don't exist.
 
 **Resolution:** This is expected behavior — `02_privatelink` cannot plan or apply
-without `01_networking` deployed. The CI workflow uses `continue-on-error: true` on
-the plan step, so it posts the error as a PR comment rather than silently failing.
-When `01_networking` is redeployed, `02_privatelink` will plan successfully.
+without `01_networking` deployed.
+
+### Handling Downstream Plan Failures in CI
+
+When infrastructure is torn down, downstream workspaces (`02_privatelink`) cannot
+plan because upstream state is empty. Three approaches were considered:
+
+| Approach | How it works | Tradeoff |
+|----------|-------------|----------|
+| **Remove downstream from CI** | Only run `01_networking` in CI — it has no dependencies | Clean CI output, but `02_privatelink` code changes aren't validated |
+| **Conditional execution** | Check if upstream state is populated before running downstream plan | Complex workflow logic, extra API calls to check state |
+| **Accept the failure (chosen)** | `continue-on-error: true` on plan step — CI shows error but doesn't block | Job shows "failed" in GitHub UI but workflow continues; error is informative |
+
+**Why Option 3 (accept the failure) was chosen:**
+
+1. **The error is informative, not harmful.** It tells you "privatelink can't be
+   planned without networking deployed" — which is correct and useful.
+2. **No code changes needed when infra is redeployed.** Once `01_networking` is
+   applied (locally or via CI), `02_privatelink` plan succeeds automatically.
+3. **Both workspaces are validated when infra exists.** During active development
+   with live infrastructure, both plans pass — you get full coverage.
+4. **Minimal workflow complexity.** No conditional logic, no state-checking scripts,
+   no maintenance burden.
+
+**When to switch approaches:**
+- If the "failed" status on `plan-privatelink` bothers you in GitHub UI → remove it from CI
+- If you need both workspaces validated without deploying → not possible (Terraform needs live state)
+- If moving to production (infra always up) → re-enable apply jobs, both plans will always pass
 
 ---
 
