@@ -6,32 +6,15 @@ the public internet.
 
 ## Architecture
 
-```mermaid
-flowchart TB
-    subgraph AWS["AWS us-west-2"]
-        subgraph SANDBOX["Sandbox Account"]
-            subgraph VPC["VPC 10.0.0.0/16"]
-                VPCE["VPC Endpoint (Interface)\nSnowflake PrivateLink"]
-                S3GW["VPC Endpoint (Gateway)\nS3"]
-                R53["Route53 Private Zone\nprivatelink.snowflakecomputing.com"]
-            end
-        end
-        ROLE["IAM Role: snowflake-privatelink-admin\n(Management Account)"]
-    end
-
-    subgraph SF["Snowflake (us-west-2)"]
-        SFACCT["Business Critical Account"]
-    end
-
-    ROLE -->|AssumeRole| SANDBOX
-    VPCE -->|"PrivateLink (private)"| SFACCT
-```
+![Architecture Diagram](docs/articles/diagrams/architecture.png)
 
 ## Quick Start
 
 ```bash
-# 1. Assume the PrivateLink admin role
-export AWS_PROFILE=snowflake-privatelink
+# 1. Set your AWS profile (management account credentials).
+#    Terraform assumes OrganizationAccountAccessRole into the sandbox account.
+#    For a standalone account, just use your own credentials.
+export AWS_PROFILE=<your-management-account-profile>
 
 # 2. One-time Snowflake authorization
 ./scripts/authorize-privatelink.sh
@@ -64,7 +47,7 @@ app/                     # Application code (future)
 - Terraform >= 1.10.0, < 2.0.0
 - AWS CLI configured with management account credentials
 - Snowflake Business Critical account in us-west-2 with ACCOUNTADMIN access
-- `snowflake-privatelink-admin` IAM role applied (see aws-org-infra)
+- `OrgSnowflakePrivateLinkAdmin` IAM role applied (see aws-org-infra)
 
 ## Related
 
